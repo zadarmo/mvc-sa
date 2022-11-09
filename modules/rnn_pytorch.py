@@ -10,7 +10,7 @@ class RNN_pytorch(nn.Module):
         self.hid_size = hid_size
         self.dropout = dropout
         self.Embedding = nn.Embedding(self.max_words, self.emb_size)
-        self.fc2 = nn.Linear(self.hid_size, 3)
+        self.fc2 = nn.Linear(self.hid_size, 2)
         self.RNN = nn.RNN(self.emb_size, self.hid_size, num_layers=1, batch_first=True)
 
     def forward(self, x):

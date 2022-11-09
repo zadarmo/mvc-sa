@@ -1,5 +1,3 @@
-from preprocess.data_processer import DataProcesser
+from preprocess.jieba_tokenizer import jiebaConfig
 
-movie_data = DataProcesser(csv_name='DMSC.csv')
-
-movie_data.data_clean("process")
+print('123')

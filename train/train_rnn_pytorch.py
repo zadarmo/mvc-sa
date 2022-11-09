@@ -25,8 +25,8 @@ class Config:
 # 数据加载
 print('-----------Loading data---------------')
 
-movie_data = DataProcesser(csv_name='comments_38w.xlsx')
-train_labels, train_texts, test_labels, test_texts = movie_data.data_clean('process', rate=0.7)
+movie_data = DataProcesser(xlsx_name='comments_38w.xlsx')
+train_labels, train_texts, test_labels, test_texts = movie_data.data_clean('process')
 
 rate = movie_data.rate
 # 数据处理

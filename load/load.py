@@ -4,7 +4,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.utils import pad_sequences
 import numpy as np
 
-print('------------Loading csv------------')
+print('------------Loading xlsx------------')
 
 movie_data = DataProcesser(csv_name='comments_38w.csv')
 train_labels, train_texts, test_labels, test_texts = movie_data.data_clean('process', rate=0.7)
