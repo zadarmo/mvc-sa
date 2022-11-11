@@ -2,23 +2,23 @@ from keras.layers import Embedding, Dense, Dropout, LSTM, SimpleRNN, Bidirection
 from keras import Model, Input, Sequential
 from keras.optimizers import Adam
 import numpy as np
-from preprocess.jieba_tokenizer import jiebaConfig
 
 
 class TextRNN(object):
-    def __init__(self, num_words, embedding_matrix, max_tokens, activation='sigmoid'):
+    def __init__(self, num_words, embedding_matrix, max_tokens, embedding_dim, activation='sigmoid'):
         # self.maxlen = maxlen
         self.num_words = num_words
-        self.last_activation = activation
+        self.activation = activation
         self.embedding_matrix = embedding_matrix
         self.max_tokens = max_tokens
+        self.embedding_dim = embedding_dim
 
     def get_model(self):
         model = Sequential()
 
         #Embedding
-        model.add(Embedding(jiebaConfig().num_words,
-                            jiebaConfig().embedding_dim,
+        model.add(Embedding(self.num_words,
+                            self.embedding_dim,
                             weights=[self.embedding_matrix],
                             input_length=self.max_tokens,
                             trainable=False))

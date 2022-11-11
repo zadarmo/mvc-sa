@@ -1,10 +1,9 @@
 import os
-from torch.utils.data import Dataset
 import pandas as pd
 import openpyxl
 
 
-class DataProcesser(Dataset):
+class DataProcesser:
     """创建自定义Dataset数据集，初始化参数传入数据预处理器"""
 
     def __init__(self, xlsx_name, root_path='E:\Git\mvc-sa\data'):
@@ -37,63 +36,35 @@ class DataProcesser(Dataset):
         r"""
         按照rate将数据分为测试集和验证集
         """
-
-        # 数据预处理
-        self.read_file = self.read_file[self.read_file['评论评分'] != 30]
-
-        self.read_file.loc[self.read_file['评论评分'] < 30, ['评论评分']] = 0
-        self.read_file.loc[self.read_file['评论评分'] > 30, ['评论评分']] = 1
-        # self.read_file.loc[self.read_file['评论评分'] == 30, ['评论评分']] = 2
-
-        # 清洗部分价值低的数据
-
-        self.read_file = self.read_file[self.read_file['点赞数'] > 0]
-
-        clean_csv = self.read_file[['评论评分', '评论内容']]
-
         # 保存
-        csv_folder = os.path.join(self.root_path, name)
-        if not os.path.exists(csv_folder):
-            os.mkdir(csv_folder)
+        xlsx_folder = os.path.join(self.root_path, name)
+        to_xlsx_path = os.path.join(xlsx_folder, f'{name}.xlsx')
+        # 若没有清洗过的文件则创建
+        if not os.path.exists(xlsx_folder):
+            os.mkdir(xlsx_folder)
 
-        to_xlsx_path = os.path.join(csv_folder, f'{name}.xlsx')
-        if not os.path.exists(to_xlsx_path):
-            clean_csv.to_excel(to_xlsx_path, index=0)
+            # 数据预处理
+            self.read_file = self.read_file[self.read_file['评论评分'] != 30]
+
+            self.read_file.loc[self.read_file['评论评分'] < 30, ['评论评分']] = 0
+            self.read_file.loc[self.read_file['评论评分'] > 30, ['评论评分']] = 1
+
+            # self.read_file.loc[self.read_file['评论评分'] == 30, ['评论评分']] = 2
+
+            # 清洗部分价值低的数据
+
+            self.read_file = self.read_file[self.read_file['点赞数'] > 0]
+            clean_xlsx = self.read_file
+            # 过滤空值
+            clean_xlsx = clean_xlsx.dropna(axis=0)
+            clean_xlsx.to_excel(to_xlsx_path, index=False)
 
         print("Save completed.")
 
-        # 数据加载
-        train_labels = []
-        train_texts = []
-        test_labels = []
-        test_texts = []
-
-        read_list = []
-        train_list = []
-        test_list = []
-
-        # with open(to_xlsx_path, encoding='utf-8') as f:
         read_list = pd.read_excel(to_xlsx_path)
 
-        read_len = len(read_list)
+        clean_texts = list(read_list['评论内容'])
+        clean_labels = list(read_list['评论评分'])
 
-        # train_list = read_list[1:5000]
-        # test_list = read_list[5000:10000]
+        return clean_texts, clean_labels
 
-        train_list = read_list[1:int(read_len * self.rate)]
-        test_list = read_list[int(read_len * self.rate):]
-
-        train_labels = list(train_list['评论评分'])
-        train_texts = list(train_list['评论内容'].fillna(''))
-
-        test_labels = list(test_list['评论评分'])
-        test_texts = list(test_list['评论内容'].fillna(''))
-
-        print("--------------Load completed------------------")
-
-        print("train_texts:", train_texts[:100])
-        print("train_labels:", train_labels[:100])
-        print("test_texts:", test_texts[:100])
-        print("test_labels:", test_labels[:100])
-
-        return train_labels, train_texts, test_labels, test_texts

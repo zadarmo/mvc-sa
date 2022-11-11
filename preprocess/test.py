@@ -1,3 +1,4 @@
-from preprocess.jieba_tokenizer import jiebaConfig
+from preprocess.data_processer import DataProcesser
 
-print('123')
+movie_data = DataProcesser(xlsx_name='comments_38w.xlsx')
+clean_texts, clean_labels = movie_data.data_clean('process')
