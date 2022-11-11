@@ -2,143 +2,123 @@ import re
 import jieba
 from gensim.models import KeyedVectors
 from keras.utils import pad_sequences
-<<<<<<<< HEAD:dl/train/train_lstm.py
-from keras.preprocessing.text import Tokenizer
-import numpy as np
-from modules.lstm import TextLSTM
-from keras.callbacks import EarlyStopping
-========
 from preprocess.data_processer import DataProcesser
+from preprocess.data_predict import DataPredict
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 from modules.rnn import TextRNN
 from preprocess.jieba_tokenizer import jieba_preprocess
-from preprocess.jieba_tokenizer import jiebaConfig
-
-# 使用gensim加载预训练中文分词embedding
-cn_model = KeyedVectors.load_word2vec_format("E:\__easyHelper__\sgns.zhihu.bigram\sgns.zhihu.bigram", binary=False)
->>>>>>>> 1d78d9c (fix):train/train_rnn.py
+from tqdm import tqdm
+import numpy as np
+import os
+import pandas as pd
 
 
 class Config:
     def __init__(self):
         self.maxlen = 380
-        self.batch_size = 32
+        self.batch_size = 100
         self.epochs = 10
         self.num_words = 3800
         # 权重存储点
         self.path_checkpoint = '../models/sentiment_checkpoint_rnn.keras'
 
 
-# 数据加载
-print('-----------Loading data---------------')
-movie_data = DataProcesser(xlsx_name='comments_38w.xlsx')
-train_labels, train_texts, test_labels, test_texts = movie_data.data_clean('process')
-# 保存checkpoint
-checkpoint = ModelCheckpoint(filepath=Config().path_checkpoint, monitor='val_loss',
-                             verbose=1, save_weights_only=True, save_best_only=True)
+if __name__ == '__main__':
+    # 使用gensim加载预训练中文分词embedding
+    cn_model = KeyedVectors.load_word2vec_format("E:\__easyHelper__\sgns.zhihu.bigram\sgns.zhihu.bigram", binary=False)
 
-<<<<<<<< HEAD:dl/train/train_lstm.py
-movie_data = DataProcesser(xlsx_name='comments_38w.xlsx')
-train_labels, train_texts, test_labels, test_texts = movie_data.data_clean('process')
-rate = movie_data.rate
-========
-print('-------------tokenizer----------------')
-train_texts, embedding_matrix, max_tokens = jieba_preprocess(train_texts=train_texts)
-test_texts, _, _ = jieba_preprocess(test_texts)
->>>>>>>> 1d78d9c (fix):train/train_rnn.py
+    # 数据加载
+    print('-----------Loading data---------------')
+    movie_data = DataProcesser(xlsx_name='comments_38w.xlsx')
+    clean_texts, clean_labels = movie_data.data_clean('process')
+    # 保存checkpoint
+    checkpoint = ModelCheckpoint(filepath=Config().path_checkpoint, monitor='val_loss',
+                                 verbose=1, save_weights_only=True, save_best_only=True)
 
-model = TextRNN(num_words=jiebaConfig().num_words,
-                embedding_matrix=embedding_matrix, max_tokens=max_tokens)
+    print('-------------tokenizer----------------')
+    train_tokens, embedding_matrix, max_tokens, embedding_dim, X_train, X_test, y_train, y_test = jieba_preprocess(
+        train_texts=clean_texts, train_labels=clean_labels)
 
-# 加载模型
-try:
-    model.load_weights(Config().path_checkpoint)
-except Exception as e:
-    print(e)
-    # earlystop
-    earlystopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-    # 自动降低learning rate
-    lr_reduction = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
-                                     min_lr=1e-5, patience=0, verbose=1)
+    # 转numpy
+    y_train = np.array(y_train)
+    y_test = np.array(y_test)
 
-    # callback
-    callbacks = [earlystopping, checkpoint, lr_reduction]
+    test_model = TextRNN(num_words=50000,
+                    embedding_matrix=embedding_matrix, max_tokens=max_tokens, embedding_dim=embedding_dim)
+    model = test_model.get_model()
 
-    print('-------------training start----------------')
+    # 加载模型
+    if os.path.exists(Config().path_checkpoint):
+        model.load_weights(Config().path_checkpoint)
+    else:
+        # earlystop
+        earlystopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
+        # 自动降低learning rate
+        lr_reduction = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
+                                         min_lr=1e-5, patience=0, verbose=1)
 
-    # 训练
-    model.fit(train_texts, train_labels, validation_split=0.1, epochs=10,
-              batch_size=128, callbacks=callbacks)
+        # callback
+        callbacks = [earlystopping, checkpoint, lr_reduction]
 
-    print('-------------training stop----------------')
-# evaluate
-result = model.evaluate(test_texts, test_labels)
-print(f'Accuracy:{0:.2%}'.format(result[1]))
+        print('-------------training start----------------')
 
-# 分类
-def predict_sentiment(text):
-    print(text)
-    # 去掉标点符号和表情
-    text = re.sub(r"[\s+\.\!\/_,$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）]+|[^\u4e00-\u9fa5]+", "", text)
-    # 分词
-    cut = jieba.cut(text)
-    cut_list = [i for i in cut]
-    # tokenize
-    for i, word in enumerate(cut_list):
-        try:
-            cut_list[i] = cn_model.vocab[word].index
-        except KeyError:
-            cut_list[i] = 0
-    # padding
-    tokens_pad = pad_sequences([cut_list], maxlen=max_tokens,
-                               padding='pre', truncating='pre')
+
+        # 训练
+        model.fit(X_train, y_train, validation_split=0.1, epochs=10,
+                  batch_size=128, callbacks=callbacks, verbose=1)
+
+        print('-------------training stop----------------')
+        # evaluate
+        print('----------evaluate------------')
+        result = model.evaluate(X_test, y_test)
+        print(f'Accuracy:{0:.2%}'.format(result[1]))
+
+    # 分类
+    def predict_sentiment(text_list):
+        tag_list = []
+        coef_list = []
+        # 去掉标点符号和表情
+        for i in tqdm(range(len(text_list))):
+            print(text_list[i])
+            # 分词
+            cut = jieba.cut(text_list[i])
+            cut_list = [i for i in cut]
+            # tokenize
+            for i, word in enumerate(cut_list):
+                try:
+                    cut_list[i] = cn_model.key_to_index[word]
+                except KeyError:
+                    cut_list[i] = 0
+            # padding
+            tokens_pad = pad_sequences([cut_list], maxlen=max_tokens,
+                                       padding='pre', truncating='pre')
+
+            # 预测
+            result = model.predict(x=tokens_pad)
+            coef = result[0][0]
+            if coef >= 0.5:
+                tag = 'pos'
+                # print('是一例正面评价:', 'output=%.2f' % coef)
+            else:
+                tag = 'neg'
+                # print('是一例负面评价:', 'output=%.2f' % coef)
+            tag_list.append(tag)
+            coef_list.append(coef)
+        return tag_list, coef_list
 
     # 预测
-    result = model.predict(x=tokens_pad)
-    coef = result[0][0]
-    if coef >= 0.5:
-        print('pos:', 'output=%.2f' % coef)
-    else:
-        print('neg:', 'output=%.2f' % coef)
+    predict_data = DataPredict(xlsx_name='comments_5w.xlsx')
+    predict_texts = predict_data.data_predict_clean('predict')
 
-<<<<<<<< HEAD:dl/train/train_lstm.py
-init_model = TextLSTM(Config().maxlen, Config().num_words)
-model = init_model.get_model()
+    # 保存预测结果
+    print("-------sentiment---------")
+    tag_list, coef_list = predict_sentiment(predict_texts)
 
-print('-----------Training---------------')
+    xlsx_path = '../data/predict/predict.xlsx'
+    xlsx_file = pd.read_excel(xlsx_path)
 
-train_labels = np.array(train_labels)
-test_labels = np.array(test_labels)
+    xlsx_file['标签'] = tag_list
+    xlsx_file['情感分数'] = coef_list
+    xlsx_file.to_excel(xlsx_path, index=False)
 
-print("text shape:", train_texts.shape)
-print("label shape:", train_labels.shape)
 
-model.summary()
-
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-early_stopping = EarlyStopping(monitor='val_accuracy', patience=3, mode='max')
-
-model.fit(train_texts, train_labels, batch_size=Config().batch_size,
-          epochs=Config().epochs, verbose=1, callbacks=[early_stopping],
-          validation_data=(test_texts, test_labels))
-
-print('-----------Testing---------------')
-
-scores = model.evaluate(test_texts, test_labels, verbose=1)
-print("score:", scores[1])
-
-result = model.predict(test_texts)
-
-print("result:", result)
-# 保存
-model.save(f'../models/lstm_{rate}.h5')
-del model
-
-print('-----------Save model completed---------------')
-========
-label_pred = model.predict(test_texts)
->>>>>>>> 1d78d9c (fix):train/train_rnn.py
-
-for i, label in enumerate(label_pred):
-    print("i:{0}, label:{1}".format(i, label))
