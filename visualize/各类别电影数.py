@@ -1,5 +1,5 @@
 import pandas as pd
-from visual import *
+from visualize.util.visual import *
 
 # 读取文件
 df = pd.read_excel("./result/各类别电影数量.xlsx")

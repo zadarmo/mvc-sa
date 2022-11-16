@@ -1,6 +1,6 @@
 import pandas as pd
 from pyecharts.charts import *
-from visual import *
+from visualize.util.visual import *
 
 # 读取文件
 df = pd.read_excel("./result/好评率前100各国家电影数.xlsx")

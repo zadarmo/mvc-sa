@@ -1,5 +1,5 @@
 import pandas as pd
-from visual import *
+from visualize.util.visual import *
 
 countries_name = {
   "Afghanistan": "阿富汗",

@@ -1,6 +1,6 @@
 import pandas as pd
 from pyecharts.charts import *
-from visual import *
+from visualize.util.visual import *
 import json
 from pyecharts.globals import SymbolType
 

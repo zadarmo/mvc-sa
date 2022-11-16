@@ -74,18 +74,3 @@ def render_pie(data):
     return c
 
 
-# data = [('python', 23),('word',10),('cloud',5)]
-# mywordcloud = WordCloud()
-# mywordcloud.add('',data, shape='circle')
-
-# page = Page(layout=Page.DraggablePageLayout, page_title="2020东京奥运会奖牌榜")
-# page.add(
-#     render_map(),
-#     render_bar(),
-#     render_pie(),
-#     mywordcloud
-# )
- 
-# page.render('test.html')
-
-
