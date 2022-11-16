@@ -7,6 +7,12 @@ def gif2mp4(input_path: str, output_path: str) -> None:
     clip = mp.VideoFileClip(input_path)
     clip.write_videofile(output_path)
 
+def mp42gif(input_path: str, output_path: str) -> None:
+    """mp4 -> gif动图 
+    """
+    clip = mp.VideoFileClip(input_path)
+    clip.write_gif(output_path)
+
 
 def speed_video(input_path: str, speed_rate: float, output_path: str) -> None:
     """倍速视频
