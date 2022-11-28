@@ -2,7 +2,23 @@
 
 2022 年重庆大学《大数据架构与技术》课程项目。
 
-## src
+## 项目架构
+
+<img src="static/project-structure.png" height="600" />
+
+## 技术栈
+
+|模块|技术栈|
+|---|---|
+|分布式爬虫|Scrapy-Redis、MySQL|
+|大数据环境搭建|Hadoop、HDFS、Spark、Hive、Sqoop|
+|数据处理|Spark|
+|神经网络情感分析|keras、Bi-LSTM|
+|结果可视化|Pyecharts、bar_chart_race|
+
+## 目录结构
+
+### src
 
 目录结构如下：
 
@@ -37,7 +53,7 @@ D:.
     └─video  # 动态追逐图视频
 ```
 
-## docs
+### docs
 
 大数据框架环境搭建笔记，包括：
 
@@ -46,7 +62,7 @@ D:.
 - `hive`
 - `spark`
 
-## scripts
+### scripts
 
 集群脚本，包括：
 
