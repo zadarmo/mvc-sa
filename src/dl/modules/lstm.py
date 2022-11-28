@@ -5,7 +5,6 @@ import numpy as np
 from preprocess.jieba_tokenizer import jiebaConfig
 
 
-<<<<<<<< HEAD:dl/modules/lstm.py
 class TextLSTM(object):
     def __init__(self, maxlen, num_words, class_num=1, first_activation='relu', last_activation='sigmoid'):
         self.maxlen = maxlen
@@ -13,7 +12,6 @@ class TextLSTM(object):
         self.class_num = class_num
         self.last_activation = last_activation
         self.first_activation = first_activation
-========
 class TextRNN(object):
     def __init__(self, num_words, embedding_matrix, max_tokens, activation='sigmoid'):
         # self.maxlen = maxlen
@@ -21,7 +19,6 @@ class TextRNN(object):
         self.last_activation = activation
         self.embedding_matrix = embedding_matrix
         self.max_tokens = max_tokens
->>>>>>>> 1d78d9c (fix):modules/rnn.py
 
     def get_model(self):
         model = Sequential()
@@ -63,10 +60,7 @@ class TextRNN(object):
         output = Dense(units=self.class_num, activation=self.last_activation)(x)
 
         model = Model(inputs=input, outputs=output)
-<<<<<<<< HEAD:dl/modules/lstm.py
-========
         """
->>>>>>>> 1d78d9c (fix):modules/rnn.py
 
         return model
 
